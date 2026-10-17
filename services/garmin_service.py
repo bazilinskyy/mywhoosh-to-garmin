@@ -85,8 +85,9 @@ class GarminService:
         except Exception as e:
             error_str = str(e)
             
-            # Handle 409 Conflict gracefully (activity already exists)
-            if "409" in error_str or "Conflict" in error_str:
+            # Handle 409 Conflict gracefully (activity already exists);
+            # garminconnect 0.3.x reports it as "Activity already exists (duplicate)"
+            if "409" in error_str or "Conflict" in error_str or "already exists" in error_str:
                 self.logger.info("⚠ Activity already exists on Garmin Connect (409 Conflict)")
                 self.logger.info("Treating as success - no duplicate upload needed")
                 return {"status": "skipped", "message": "Activity already exists on Garmin Connect"}
