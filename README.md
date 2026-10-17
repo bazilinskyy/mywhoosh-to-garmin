@@ -84,6 +84,7 @@ The application follows these steps:
 | `GARMIN_USERNAME` | Yes | Your Garmin Connect username | - |
 | `GARMIN_PASSWORD` | Yes | Your Garmin Connect password | - |
 | `LOG_LEVEL` | No | Logging level (DEBUG, INFO, WARNING, ERROR) | INFO |
+| `MYWHOOSH_DEVICE_ID_FILE` | No | File holding the device ID reused for every MyWhoosh login (MyWhoosh allows one session per account) | `~/.mywhoosh_device_id` |
 
 ### Device Settings
 

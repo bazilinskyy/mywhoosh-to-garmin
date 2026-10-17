@@ -25,8 +25,32 @@ class MyWhooshService:
         self.access_token: Optional[str] = None
         self.refresh_token: Optional[str] = None
         self.whoosh_id: Optional[str] = None
-        self.device_id: str = str(uuid.uuid4())
+        self.device_id: Optional[str] = None
         self.logger = logging.getLogger(__name__)
+
+    def _load_device_id(self) -> str:
+        """Return the device ID used for logins, creating and storing it on first use.
+
+        MyWhoosh allows one session per account ("already logged in from another
+        device"), so every run logs in as the same device instead of a new one.
+
+        Returns:
+            Device ID from MYWHOOSH_DEVICE_ID_FILE (default ~/.mywhoosh_device_id)
+        """
+        path = os.path.expanduser(os.getenv('MYWHOOSH_DEVICE_ID_FILE', '~/.mywhoosh_device_id'))
+        try:
+            with open(path) as f:
+                device_id = f.read().strip()
+            if device_id:
+                return device_id
+        except FileNotFoundError:
+            pass
+
+        device_id = str(uuid.uuid4())
+        with open(path, 'w') as f:
+            f.write(device_id + '\n')
+        self.logger.info(f"Stored new MyWhoosh device ID in {path}")
+        return device_id
 
     def authenticate(self) -> None:
         """Authenticate with MyWhoosh.
@@ -35,6 +59,9 @@ class MyWhooshService:
             RuntimeError: If authentication fails
         """
         self.logger.info(f"Authenticating with MyWhoosh as {self.email}...")
+
+        if self.device_id is None:
+            self.device_id = self._load_device_id()
 
         payload = {
             "Username": self.email,
