@@ -9,7 +9,7 @@ from garminconnect import (
     GarminConnectTooManyRequestsError,
     GarminConnectConnectionError
 )
-from garth.exc import GarthHTTPError
+import os
 
 
 class GarminService:
@@ -40,7 +40,11 @@ class GarminService:
         self.logger.info("Logging in to Garmin Connect...")
 
         try:
-            self.client.login()
+            tokenstore = os.path.expanduser(os.getenv('GARMIN_TOKENSTORE', '~/.garminconnect'))
+            os.makedirs(tokenstore, exist_ok=True)
+            needs_mfa, _ = self.client.login(tokenstore)
+            if needs_mfa:
+                raise RuntimeError('Garmin MFA required: run interactively once to store tokens')
             self._authenticated = True
             self.logger.info("Successfully authenticated with Garmin Connect")
         except GarminConnectAuthenticationError:
@@ -74,7 +78,7 @@ class GarminService:
         self.logger.info(f"Uploading {fit_file_path} to Garmin Connect...")
 
         try:
-            response = self.client.upload_activity(fit_file_path)
+            response = self.client.import_activity(fit_file_path)
             self.logger.info("Upload successful")
             self.logger.debug(f"Upload response: {response}")
             return response
